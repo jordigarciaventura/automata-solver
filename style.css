@@ -10,7 +10,7 @@
   --sidebar-width: 360px;
   --header-height: 56px;
   --menu-height: 48px;
-  --validate-height: 52px;
+  --validate-height: 64px;
   --transition-gap: 10px;
   --arrow-size: 16px;
   --close-size: 16px;
@@ -83,6 +83,7 @@ body {
 }
 
 #validate-label {
+  font-size: 18px;
   margin-right: 12px;
 }
 
