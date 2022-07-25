@@ -1,4 +1,12 @@
 export default class FiniteAutomata {
+  /**
+   * Creates a new FiniteAutomata and accepts no parameters.
+   * @param {Array.<String>} states - All states
+   * @param {Array.<String>} alphabet - Characters from alphabet
+   * @param {Object} transitions - Transitions in the form {'0':{'a':['1', '2'], 'b':['1']}, '1':{'a':['0']}}
+   * @param {Array.<String>} initialStates - Initial states from states
+   * @param {Array.<String>} finalStates - Final states from states
+   */
   constructor(states, alphabet, transitions, initialStates, finalStates) {
     this.states = new Set(states);
     this.alphabet = new Set(alphabet);
@@ -34,8 +42,21 @@ export default class FiniteAutomata {
     }
   }
 
+  hasTransition(newInitialState, newSymbol, newFinalStates) {
+    if (!this.transitions.has(newInitialState)) return false;
+    const symbolTransitions = this.transitions.get(newInitialState);
+    if (!symbolTransitions.has(newSymbol)) return false;
+    const finalStates = symbolTransitions.get(newSymbol);
+    for (let finalState of newFinalStates) {
+      if (!finalStates.has(finalState)) return false;
+    }
+    return true;
+  }
+
   addTransition(initialState, symbol, finalStates) {
-    finalStates = new Set(finalStates)
+    if (this.hasTransition(initialState, symbol, finalStates)) return;
+
+    finalStates = new Set(finalStates);
     if (!this.transitions.has(initialState)) {
       const symbolTransitions = new Map();
       symbolTransitions.set(symbol, finalStates);
@@ -58,11 +79,15 @@ export default class FiniteAutomata {
   }
 
   removeTransition(initialState, symbol, endStates) {
+    if (!this.hasTransition(initialState, symbol, endStates)) return;
+
     const currentEndStates = this.transitions.get(initialState).get(symbol);
 
     for (const endState of endStates) {
       currentEndStates.delete(endState);
     }
+
+    // Clean empty transitions
 
     if (this.transitions.get(initialState).get(symbol).size === 0)
       this.transitions.get(initialState).delete(symbol);
@@ -72,29 +97,44 @@ export default class FiniteAutomata {
   }
 
   validate(symbols) {
-    let configurations = [];
+    let configurationsStack = new StackSet();
+
+    // Fill stack with initial configurations
     for (const initialState of this.initialStates) {
-      configurations.push([initialState, symbols]);
+      const labmdaStates = this.lambdaStates(initialState);
+      for (const lambdaState of labmdaStates) {
+        configurationsStack.push(new Configuration(lambdaState, [...symbols]));
+      }
     }
 
-    while (configurations.length > 0) {
-      const [state, symbols] = configurations.pop();
+    while (configurationsStack.length > 0) {
+      const configuration = configurationsStack.pop();
 
-      if (symbols.length == 0) {
-        if (this.finalStates.has(state)) return true;
+      // No symbols left -> check if configuration state is a final state or if we can reach some final state with lambda transitions
+
+      if (!configuration.hasSymbols()) {
+        const lambdaStates = this.lambdaStates(configuration.state); // reachable states with lambda transitions (including itself)
+        for (let lambdaState of lambdaStates) {
+          if (this.finalStates.has(lambdaState)) return true; // if some reachable state is a final state, return true
+        }
         continue;
       }
 
-      if (this.transitions.has(state)) {
-        const symbolTransitions = this.transitions.get(state);
-        if (symbolTransitions.has(symbols[0])) {
-          for (const endState of symbolTransitions.get(symbols[0])) {
-            configurations.push([endState, symbols.slice(1)]);
-          }
-        }
-        if (symbolTransitions.has("")) {
-          for (const endState of symbolTransitions.get("")) {
-            configurations.push([endState, symbols[0]]);
+      // Symbols left -> add configurations with reachable states by the next symbol in symbols, so we pop that symbol
+
+      if (!this.transitions.has(configuration.state)) continue; // no reachable states
+
+      const symbol = configuration.popSymbol();
+
+      // Check reachable states with symbol transitions
+      const symbolTransitions = this.transitions.get(configuration.state);
+      if (symbolTransitions.has(symbol)) {
+        for (const endState of symbolTransitions.get(symbol)) {
+          const lambdaStates = this.lambdaStates(endState); // reachable states with symbol
+          for (let lambdaState of lambdaStates) {
+            configurationsStack.push(
+              new Configuration(lambdaState, [...configuration.symbols])
+            ); // add to stack (there is one minus symbol so we are reducing the problem)
           }
         }
       }
@@ -135,15 +175,13 @@ export default class FiniteAutomata {
             deterministicAutomata.addNullState();
             hasNull = true;
           }
-          deterministicAutomata.addTransition(
-            statesName,
-            symbol,
-            ["ø"]
-          );
+          deterministicAutomata.addTransition(statesName, symbol, ["ø"]);
           continue;
         }
         const lambdaStatesName = this.statesName(lambdaStates);
-        deterministicAutomata.addTransition(statesName, symbol, [lambdaStatesName]);
+        deterministicAutomata.addTransition(statesName, symbol, [
+          lambdaStatesName,
+        ]);
         if (!deterministicAutomata.states.has(lambdaStatesName))
           stack.push(lambdaStates);
       }
@@ -161,7 +199,7 @@ export default class FiniteAutomata {
 
   hasInitialState(states) {
     for (const state of states) {
-      if(this.initialStates.has(state)) return true;
+      if (this.initialStates.has(state)) return true;
     }
     return false;
   }
@@ -187,16 +225,18 @@ export default class FiniteAutomata {
     return new Set(endStates);
   }
 
-  lambdaStates(states) {
+  lambdaStates(states, includeSources = true) {
     if (typeof states === "string") states = [states];
+    states = new Set(states);
 
     let lambdaStates = new Set();
-    let stack = [...states];
+    let stack = includeSources ? [...states] : [];
 
     while (stack.length > 0) {
       const state = stack.pop();
 
-      if (lambdaStates.has(state)) continue;
+      if (lambdaStates.has(state)) continue; // avoid infinite loop
+      if (!includeSources && states.has(state)) continue;
       lambdaStates.add(state);
 
       if (this.transitions.has(state)) {
@@ -404,5 +444,49 @@ digraph finite_state_machine {
     this.initialStates = new Set(automataObj.initialStates);
     this.finalStates = new Set(automataObj.finalStates);
     this.transitions = this.transitionsFromObject(automataObj.transitions);
+  }
+}
+
+class Configuration {
+  constructor(state, symbols) {
+    this.state = state;
+    this.symbols = symbols;
+  }
+
+  hasSymbols() {
+    return this.symbols.length > 0;
+  }
+
+  popSymbol() {
+    return this.symbols.shift();
+  }
+
+  toString() {
+    return `${this.state}${this.symbols.join("")}`;
+  }
+}
+
+class StackSet {
+  constructor() {
+    this.arr = [];
+    this.length = 0;
+    this.hashSet = new Set();
+  }
+
+  push(obj) {
+    const hash = obj.toString();
+    if (this.hashSet.has(hash)) return;
+
+    this.length++;
+    this.hashSet.add(hash);
+    this.arr.push(obj);
+  }
+
+  pop() {
+    this.length--;
+    const obj = this.arr.pop();
+    const hash = obj.toString();
+    this.hashSet.delete(hash);
+    return obj;
   }
 }

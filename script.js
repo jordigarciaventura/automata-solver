@@ -20,6 +20,8 @@ const uploadOption = document.getElementById("upload-option");
 const inputNav = document.getElementById("input-nav");
 const minimizedNav = document.getElementById("minimized-nav");
 
+const clearButton = document.getElementById("clear");
+
 const inputFullscreenButton = document.getElementById("input-graph-fullscreen");
 const inputSvgButton = document.getElementById("input-svg");
 const inputPngButton = document.getElementById("input-png");
@@ -99,6 +101,12 @@ minimizedNav.addEventListener("click", () => {
     inputGraphContainer.classList.remove("selected-graph");
     minimizedGraphContainer.classList.add("selected-graph");
   }
+});
+
+clearButton.addEventListener("click", () => {
+  inputAutomata = new FiniteAutomata();
+  loadProperties();
+  plot(false);
 });
 
 statesInput.addEventListener("focusout", () => {
@@ -266,32 +274,30 @@ const transition = d3.transition().duration(2000).ease(d3.easeLinear);
 function attributer(datum, index, nodes) {
   var selection = d3.select(this);
   if (datum.tag == "svg") {
-      datum.attributes = {
-          ...datum.attributes,
-          width: '100%',
-          height: '100%',
-      };
-      const px2pt = 3 / 4;
+    datum.attributes = {
+      ...datum.attributes,
+      width: "100%",
+      height: "100%",
+    };
+    const px2pt = 3 / 4;
 
-      const graphWidth = datum.attributes.viewBox.split(' ')[2] / px2pt;
-      const graphHeight = datum.attributes.viewBox.split(' ')[3] / px2pt;
+    const graphWidth = datum.attributes.viewBox.split(" ")[2] / px2pt;
+    const graphHeight = datum.attributes.viewBox.split(" ")[3] / px2pt;
 
-      const w = graphWidth / 0.6;
-      const h = graphHeight / 0.6;
+    const w = graphWidth / 0.6;
+    const h = graphHeight / 0.6;
 
-      const x = -(w - graphWidth) / 2;
-      const y = -(h - graphHeight) / 2;
+    const x = -(w - graphWidth) / 2;
+    const y = -(h - graphHeight) / 2;
 
-      const viewBox = `${x * px2pt} ${y * px2pt} ${w * px2pt} ${h * px2pt}`;
-      selection.attr('viewBox', viewBox);
-      datum.attributes.viewBox = viewBox;
+    const viewBox = `${x * px2pt} ${y * px2pt} ${w * px2pt} ${h * px2pt}`;
+    selection.attr("viewBox", viewBox);
+    datum.attributes.viewBox = viewBox;
   }
 }
 
 function plotInput(animated = true) {
-  inputGraphviz = d3.select("#input-graph")
-    .graphviz()
-    .attributer(attributer)
+  inputGraphviz = d3.select("#input-graph").graphviz().attributer(attributer);
 
   if (animated) {
     inputGraphviz.transition(transition);
@@ -301,9 +307,10 @@ function plotInput(animated = true) {
 }
 
 function plotMinimized(animated = true) {
-  minimizedGraphviz = d3.select("#minimized-graph")
-  .graphviz()
-  .attributer(attributer)
+  minimizedGraphviz = d3
+    .select("#minimized-graph")
+    .graphviz()
+    .attributer(attributer);
 
   if (animated) {
     minimizedGraphviz.transition(transition);
@@ -542,18 +549,25 @@ function getIconElement(id) {
 function loadProperties(json) {
   removeTransitionsElements();
 
-  const obj = JSON.parse(json);
-  statesInput.value = obj.states.join(" ");
-  alphabetInput.value = obj.alphabet.join(" ");
-  initialStatesInput.value = obj.initialStates.join(" ");
-  finalStatesInput.value = obj.finalStates.join(" ");
+  try {
+    const obj = JSON.parse(json);
+    statesInput.value = obj.states.join(" ");
+    alphabetInput.value = obj.alphabet.join(" ");
+    initialStatesInput.value = obj.initialStates.join(" ");
+    finalStatesInput.value = obj.finalStates.join(" ");
 
-  if (Object.keys(obj.transitions).length > 0) {
-    for (const [fromState, symbols] of Object.entries(obj.transitions)) {
-      for (const [symbol, toStates] of Object.entries(symbols)) {
-        addTransitionElement(fromState, symbol, toStates.join(" "));
+    if (Object.keys(obj.transitions).length > 0) {
+      for (const [fromState, symbols] of Object.entries(obj.transitions)) {
+        for (const [symbol, toStates] of Object.entries(symbols)) {
+          addTransitionElement(fromState, symbol, toStates.join(" "));
+        }
       }
     }
+  } catch (e) {
+    statesInput.value = "";
+    alphabetInput.value = "";
+    initialStatesInput.value = "";
+    finalStatesInput.value = "";
   }
 }
 
@@ -586,7 +600,7 @@ function unlockProperties() {
 }
 
 function downloadPNG(svg, filename) {
-  svgExport.downloadPng(svg, filename, {useCSS: false});
+  svgExport.downloadPng(svg, filename, { useCSS: false });
 }
 
 function downloadSVG(svg, filename) {
@@ -632,7 +646,8 @@ function upload() {
 }
 
 function validate() {
-  if (inputAutomata.validate(validateInput.value)) {
+  const symbols = validateInput.value.split(" ").filter((i) => i);
+  if (inputAutomata.validate(symbols)) {
     validateInput.classList.add("valid");
     validateInput.classList.remove("invalid");
   } else {
@@ -649,13 +664,67 @@ function save() {
   window.localStorage.setItem("automata", inputAutomata.toJSON());
 }
 
+const automataExampleJSON = `
+{
+  "states": [
+    "1",
+    "2",
+    "3",
+    "4"
+  ],
+  "alphabet": [
+    "a",
+    "b"
+  ],
+  "initialStates": [
+    "1",
+    "3"
+  ],
+  "finalStates": [
+    "1",
+    "3"
+  ],
+  "transitions": {
+    "1": {
+      "a": [
+        "2"
+      ],
+      "": [
+        "3"
+      ]
+    },
+    "2": {
+      "a": [
+        "1"
+      ]
+    },
+    "3": {
+      "": [
+        "1"
+      ],
+      "b": [
+        "4"
+      ]
+    },
+    "4": {
+      "b": [
+        "3"
+      ]
+    }
+  }
+}
+`;
+
 function load() {
   const savedData = localStorage.getItem("automata");
   if (savedData) {
     inputAutomata.fromJSON(savedData);
     loadProperties(savedData);
-    plot(false);
+  } else {
+    inputAutomata.fromJSON(automataExampleJSON);
+    loadProperties(automataExampleJSON);
   }
+  plot(false);
 }
 
 load();

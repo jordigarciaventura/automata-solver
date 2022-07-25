@@ -3,8 +3,8 @@
 
 <head>
   <title>Automata</title>
-  <link rel="stylesheet" href="style.css">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
   <script src="https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js" type="javascript/worker"></script>
   <script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js" charset="utf-8"></script>
@@ -15,26 +15,42 @@
 </head>
 
 <svg width="0" height="0" class="hidden">
-  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24" id="cross">
+  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24" id="cross">
     <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M20 20L4 4m16 0L4 20"></path>
   </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24" id="download">
+  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24" id="download">
     <path fill="currentColor" d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7l7-7z"></path>
   </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24" id="github">
-    <path fill="currentColor" fill-rule="evenodd" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385c.6.105.825-.255.825-.57c0-.285-.015-1.23-.015-2.235c-3.015.555-3.795-.735-4.035-1.41c-.135-.345-.72-1.41-1.23-1.695c-.42-.225-1.02-.78-.015-.795c.945-.015 1.62.87 1.845 1.23c1.08 1.815 2.805 1.305 3.495.99c.105-.78.42-1.305.765-1.605c-2.67-.3-5.46-1.335-5.46-5.925c0-1.305.465-2.385 1.23-3.225c-.12-.3-.54-1.53.12-3.18c0 0 1.005-.315 3.3 1.23c.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23c.66 1.65.24 2.88.12 3.18c.765.84 1.23 1.905 1.23 3.225c0 4.605-2.805 5.625-5.475 5.925c.435.375.81 1.095.81 2.22c0 1.605-.015 2.895-.015 3.3c0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z" clip-rule="evenodd"></path>
+  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24" id="github">
+    <path fill="currentColor" fill-rule="evenodd"
+      d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385c.6.105.825-.255.825-.57c0-.285-.015-1.23-.015-2.235c-3.015.555-3.795-.735-4.035-1.41c-.135-.345-.72-1.41-1.23-1.695c-.42-.225-1.02-.78-.015-.795c.945-.015 1.62.87 1.845 1.23c1.08 1.815 2.805 1.305 3.495.99c.105-.78.42-1.305.765-1.605c-2.67-.3-5.46-1.335-5.46-5.925c0-1.305.465-2.385 1.23-3.225c-.12-.3-.54-1.53.12-3.18c0 0 1.005-.315 3.3 1.23c.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23c.66 1.65.24 2.88.12 3.18c.765.84 1.23 1.905 1.23 3.225c0 4.605-2.805 5.625-5.475 5.925c.435.375.81 1.095.81 2.22c0 1.605-.015 2.895-.015 3.3c0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"
+      clip-rule="evenodd"></path>
   </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24" id="maximize">
-    <path fill="currentColor" d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6Zm0 12a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2Zm1 13a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z"></path>
+  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24" id="maximize">
+    <path fill="currentColor"
+      d="M5 6a1 1 0 0 1 1-1h2a1 1 0 0 0 0-2H6a3 3 0 0 0-3 3v2a1 1 0 0 0 2 0V6Zm0 12a1 1 0 0 0 1 1h2a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3v-2a1 1 0 1 1 2 0v2ZM18 5a1 1 0 0 1 1 1v2a1 1 0 1 0 2 0V6a3 3 0 0 0-3-3h-2a1 1 0 1 0 0 2h2Zm1 13a1 1 0 0 1-1 1h-2a1 1 0 1 0 0 2h2a3 3 0 0 0 3-3v-2a1 1 0 1 0-2 0v2Z">
+    </path>
   </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24" id="minimize">
-    <path fill="currentColor" d="M9 4a1 1 0 0 0-2 0v2.5a.5.5 0 0 1-.5.5H4a1 1 0 0 0 0 2h2.5A2.5 2.5 0 0 0 9 6.5V4Zm0 16a1 1 0 1 1-2 0v-2.5a.5.5 0 0 0-.5-.5H4a1 1 0 1 1 0-2h2.5A2.5 2.5 0 0 1 9 17.5V20Zm7-17a1 1 0 0 0-1 1v2.5A2.5 2.5 0 0 0 17.5 9H20a1 1 0 1 0 0-2h-2.5a.5.5 0 0 1-.5-.5V4a1 1 0 0 0-1-1Zm-1 17a1 1 0 1 0 2 0v-2.5a.5.5 0 0 1 .5-.5H20a1 1 0 1 0 0-2h-2.5a2.5 2.5 0 0 0-2.5 2.5V20Z"></path>
+  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24" id="minimize">
+    <path fill="currentColor"
+      d="M9 4a1 1 0 0 0-2 0v2.5a.5.5 0 0 1-.5.5H4a1 1 0 0 0 0 2h2.5A2.5 2.5 0 0 0 9 6.5V4Zm0 16a1 1 0 1 1-2 0v-2.5a.5.5 0 0 0-.5-.5H4a1 1 0 1 1 0-2h2.5A2.5 2.5 0 0 1 9 17.5V20Zm7-17a1 1 0 0 0-1 1v2.5A2.5 2.5 0 0 0 17.5 9H20a1 1 0 1 0 0-2h-2.5a.5.5 0 0 1-.5-.5V4a1 1 0 0 0-1-1Zm-1 17a1 1 0 1 0 2 0v-2.5a.5.5 0 0 1 .5-.5H20a1 1 0 1 0 0-2h-2.5a2.5 2.5 0 0 0-2.5 2.5V20Z">
+    </path>
   </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24" id="right-arrow">
-    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16m-7-7l7 7l-7 7"></path>
+  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24" id="right-arrow">
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M4 12h16m-7-7l7 7l-7 7"></path>
   </symbol>
-  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24" id="upload">
-    <path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15.01l1.41 1.41L11 14.84V19h2v-4.16l1.59 1.59L16 15.01L12.01 11z"></path>
+  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24" id="upload">
+    <path fill="currentColor"
+      d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15.01l1.41 1.41L11 14.84V19h2v-4.16l1.59 1.59L16 15.01L12.01 11z">
+    </path>
   </symbol>
 </svg>
 
@@ -52,7 +68,7 @@
     </div>
   </div>
   <a href="https://github.com/jordigarciaventura/automata-solver" id="project-bar">
-    <div id="project-title">Automata Solver</div>
+    <div id="project-title" class="unselectable">Automata Solver</div>
     <svg id="project-github" class="icon-24">
       <use href="#github"></use>
     </svg>
@@ -63,42 +79,53 @@
   <div id="main">
     <div id="sidebar" class="full-height">
       <div id="menu">
-        <div class="menu-option menu-selected" id="input-nav">Input</div>
-        <div class="menu-option" id="minimized-nav">Minimized</div>
+        <div class="menu-option menu-selected unselectable" id="input-nav">
+          Input
+        </div>
+        <div class="menu-option unselectable" id="minimized-nav">
+          Minimized
+        </div>
       </div>
       <div class="horizontal-separator"></div>
       <div id="properties-panel" class="panel panel-selected">
-        <div class="textbox-container">
-          <label class="textbox-label" for="states">States</label>
-          <input class="textbox" type="text" id="states" name="states">
+        <div id="clear" class="unselectable">
+          <p>Clear all</p>
         </div>
-        <div class="textbox-container">
-          <label class="textbox-label" for="alphabet">Alphabet</label>
-          <input class="textbox" type="text" id="alphabet" name="alphabet">
-        </div>
-        <div class="textbox-container">
-          <label class="textbox-label" for="initial-states">Initial states</label>
-          <input class="textbox" type="text" id="initial-states" name="initial-states" >
-        </div>
-        <div class="textbox-container">
-          <label class="textbox-label" for="final-states">Final states</label>
-          <input class="textbox" type="text" id="final-states" name="final-states" >
-        </div>
-        <div id="transitions-container">
-          <p class="textbox-label">Transitions</p>
-          <div id="transitions">
-            <div id="transitions-labels">
-              <p class="transition-label">From state</p>
-              <p class="transition-label">Symbol</p>
-              <p class="transition-label">To states</p>
-            </div>
-            <div id="transition">
-              <input class="textbox text-centered" type="text" id="from-state" name="from-state" >
-              <input class="textbox text-centered" type="text" id="symbol" name="symbol" >
-              <div><svg class="icon-16">
-                  <use href="#right-arrow"></use>
-                </svg></div>
-              <input class="textbox text-centered" type="text" id="to-states" name="to-states" >
+        <div id="properties-container">
+          <div class="textbox-container">
+            <label class="textbox-label unselectable" for="states">States</label>
+            <input class="textbox" type="text" id="states" name="states" />
+          </div>
+          <div class="textbox-container">
+            <label class="textbox-label unselectable" for="alphabet">Alphabet</label>
+            <input class="textbox" type="text" id="alphabet" name="alphabet" />
+          </div>
+          <div class="textbox-container">
+            <label class="textbox-label unselectable" for="initial-states">Initial states</label>
+            <input class="textbox" type="text" id="initial-states" name="initial-states" />
+          </div>
+          <div class="textbox-container">
+            <label class="textbox-label unselectable" for="final-states">Final states</label>
+            <input class="textbox" type="text" id="final-states" name="final-states" />
+          </div>
+          <div id="transitions-container">
+            <p class="textbox-label unselectable">Transitions</p>
+            <div id="transitions">
+              <div id="transitions-labels">
+                <p class="transition-label unselectable">From state</p>
+                <p class="transition-label unselectable">Symbol</p>
+                <p class="transition-label unselectable">To states</p>
+              </div>
+              <div id="transition">
+                <input class="textbox text-centered" type="text" id="from-state" name="from-state" />
+                <input class="textbox text-centered" type="text" id="symbol" name="symbol" />
+                <div>
+                  <svg class="icon-16">
+                    <use href="#right-arrow"></use>
+                  </svg>
+                </div>
+                <input class="textbox text-centered" type="text" id="to-states" name="to-states" />
+              </div>
             </div>
           </div>
         </div>
@@ -109,18 +136,14 @@
         <div id="input-graph-container" class="graph-container selected-graph">
           <div id="input-graph-options" class="graph-options">
             <div id="input-graph-fullscreen" class="graph-option">
-              <svg class="icon-24"><use href="#maximize"></use></svg>
+              <svg class="icon-24">
+                <use href="#maximize"></use>
+              </svg>
             </div>
-            <div id="input-svg" class="graph-option">
-              SVG
-            </div>
-            <div id="input-png" class="graph-option">
-              PNG
-            </div>
+            <div id="input-svg" class="graph-option unselectable">SVG</div>
+            <div id="input-png" class="graph-option unselectable">PNG</div>
           </div>
-          <div id="input-graph" class="graph">
-
-          </div>
+          <div id="input-graph" class="graph"></div>
         </div>
         <div id="minimized-graph-container" class="graph-container">
           <div id="minimized-graph-options" class="graph-options">
@@ -129,29 +152,29 @@
                 <use href="#maximize"></use>
               </svg>
             </div>
-            <div id="minimized-svg" class="graph-option">
+            <div id="minimized-svg" class="graph-option unselectable">
               SVG
             </div>
-            <div id="minimized-png" class="graph-option">
+            <div id="minimized-png" class="graph-option unselectable">
               PNG
             </div>
           </div>
-          <div id="minimized-graph" class="graph">
-
-          </div>
+          <div id="minimized-graph" class="graph"></div>
         </div>
       </div>
       <div id="validate-container">
-        <label id="validate-label" class="textbox-label" for="validate">Validate:</label>
+        <label id="validate-label" class="textbox-label unselectable" for="validate">Validate:</label>
         <div class="vertical-separator"></div>
-        <input type="text" id="validate" name="validate" >
+        <input type="text" id="validate" name="validate" />
       </div>
     </div>
   </div>
   <div class="horizontal-separator-big"></div>
   <nav id="bottom-nav">
-    <div class="menu-option menu-selected" id="properties-nav">Properties</div>
-    <div class="menu-option" id="graph-nav">Graph</div>
+    <div class="menu-option menu-selected unselectable" id="properties-nav">
+      Properties
+    </div>
+    <div class="menu-option unselectable" id="graph-nav">Graph</div>
   </nav>
 </body>
 
