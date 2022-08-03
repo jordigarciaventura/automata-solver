@@ -723,6 +723,7 @@ function load() {
   } else {
     inputAutomata.fromJSON(automataExampleJSON);
     loadProperties(automataExampleJSON);
+    validateInput.value = "a a b b"
   }
   plot(false);
 }
