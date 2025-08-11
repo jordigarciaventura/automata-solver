@@ -2,18 +2,19 @@
 <html>
 
 <head>
-  <title>Automata</title>
+  <title>Automata Solver</title>
   <link rel="stylesheet" href="style.css" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
-  <script src="https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js" type="javascript/worker"></script>
-  <script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js" charset="utf-8"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.7/umd.min.js"></script>
-  <script src="https://sharonchoong.github.io/svg-exportJS/svg-export.min.js"></script>
   <script src="./script.js" type="module" defer></script>
 </head>
 
 <svg width="0" height="0" class="hidden">
+  <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
+    viewBox="0 0 24 24" id="blank-page">
+    <path fill="currentColor"
+      d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8">
+    </path>
+  </symbol>
   <symbol xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet"
     viewBox="0 0 24 24" id="cross">
     <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M20 20L4 4m16 0L4 20"></path>
@@ -63,6 +64,11 @@
     <div id="upload-option" class="project-option">
       <svg class="icon-24">
         <use href="#upload"></use>
+      </svg>
+    </div>
+    <div id="reset-option" class="project-option" title="Reset to Example">
+      <svg class="icon-24">
+        <use href="#blank-page"></use>
       </svg>
     </div>
   </div>

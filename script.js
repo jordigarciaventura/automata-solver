@@ -1,4 +1,7 @@
 import FiniteAutomata from "./automata.js";
+import * as d3 from "d3";
+import "d3-graphviz";
+import { Canvg } from "canvg";
 
 let inputAutomata = new FiniteAutomata();
 
@@ -16,6 +19,7 @@ const toStatesInput = document.getElementById("to-states");
 
 const downloadOption = document.getElementById("download-option");
 const uploadOption = document.getElementById("upload-option");
+const resetOption = document.getElementById("reset-option");
 
 const inputNav = document.getElementById("input-nav");
 const minimizedNav = document.getElementById("minimized-nav");
@@ -63,6 +67,9 @@ let validSymbol = true;
 let validToStates = false;
 
 // EVENTS
+resetOption.addEventListener("click", () => {
+  loadSample();
+});
 
 [
   statesInput,
@@ -260,6 +267,66 @@ minimizedSvgButton.addEventListener("click", () => {
 
 // FUNCTIONS
 
+function loadSample() {
+  const automataExampleJSON = `
+{
+  "states": [
+    "1",
+    "2",
+    "3",
+    "4"
+  ],
+  "alphabet": [
+    "a",
+    "b"
+  ],
+  "initialStates": [
+    "1",
+    "3"
+  ],
+  "finalStates": [
+    "1",
+    "3"
+  ],
+  "transitions": {
+    "1": {
+      "a": [
+        "2"
+      ],
+      "": [
+        "3"
+      ]
+    },
+    "2": {
+      "a": [
+        "1"
+      ]
+    },
+    "3": {
+      "": [
+        "1"
+      ],
+      "b": [
+        "4"
+      ]
+    },
+    "4": {
+      "b": [
+        "3"
+      ]
+    }
+  }
+}
+`;
+
+  inputAutomata.fromJSON(automataExampleJSON);
+  loadProperties(automataExampleJSON);
+  plot(false);
+
+  validateInput.value = "a a b b";
+  validate();
+}
+
 function assertSetContains(set, subset) {
   return [...subset].every((value) => set.has(value));
 }
@@ -297,25 +364,25 @@ function attributer(datum, index, nodes) {
 }
 
 function plotInput(animated = true) {
-  inputGraphviz = d3.select("#input-graph").graphviz().attributer(attributer);
-
-  if (animated) {
-    inputGraphviz.transition(transition);
+  if (!inputGraphviz) {
+    inputGraphviz = d3.select("#input-graph").graphviz().attributer(attributer);
+    if (animated) {
+      inputGraphviz.transition(transition);
+    }
   }
-
   inputGraphviz.renderDot(inputAutomata.toDOT());
 }
 
 function plotMinimized(animated = true) {
-  minimizedGraphviz = d3
-    .select("#minimized-graph")
-    .graphviz()
-    .attributer(attributer);
-
-  if (animated) {
-    minimizedGraphviz.transition(transition);
+  if (!minimizedGraphviz) {
+    minimizedGraphviz = d3
+      .select("#minimized-graph")
+      .graphviz()
+      .attributer(attributer);
+    if (animated) {
+      minimizedGraphviz.transition(transition);
+    }
   }
-
   minimizedGraphviz.renderDot(inputAutomata.minimized().toDOT());
 }
 
@@ -600,11 +667,41 @@ function unlockProperties() {
 }
 
 function downloadPNG(svg, filename) {
-  svgExport.downloadPng(svg, filename, { useCSS: false });
+  const canvas = document.createElement('canvas');
+  const width = svg.width.baseVal.value || svg.getAttribute('width') || 800;
+  const height = svg.height.baseVal.value || svg.getAttribute('height') || 600;
+  canvas.width = parseInt(width);
+  canvas.height = parseInt(height);
+
+  const ctx = canvas.getContext('2d');
+  const v = Canvg.fromString(ctx, svg.outerHTML);
+  v.render().then(() => {
+    const link = document.createElement('a');
+    link.download = filename + '.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
 }
 
 function downloadSVG(svg, filename) {
-  svgExport.downloadSvg(svg, filename);
+  const serializer = new XMLSerializer();
+  let svgString = serializer.serializeToString(svg);
+
+  if (!svgString.startsWith('<?xml')) {
+    svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+  }
+
+  const blob = new Blob([svgString], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename + '.svg';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function download(data, filename, type) {
@@ -662,70 +759,22 @@ window.onbeforeunload = save;
 
 function save() {
   window.localStorage.setItem("automata", inputAutomata.toJSON());
+  window.localStorage.setItem("validate", validateInput.value);
 }
-
-const automataExampleJSON = `
-{
-  "states": [
-    "1",
-    "2",
-    "3",
-    "4"
-  ],
-  "alphabet": [
-    "a",
-    "b"
-  ],
-  "initialStates": [
-    "1",
-    "3"
-  ],
-  "finalStates": [
-    "1",
-    "3"
-  ],
-  "transitions": {
-    "1": {
-      "a": [
-        "2"
-      ],
-      "": [
-        "3"
-      ]
-    },
-    "2": {
-      "a": [
-        "1"
-      ]
-    },
-    "3": {
-      "": [
-        "1"
-      ],
-      "b": [
-        "4"
-      ]
-    },
-    "4": {
-      "b": [
-        "3"
-      ]
-    }
-  }
-}
-`;
 
 function load() {
-  const savedData = localStorage.getItem("automata");
-  if (savedData) {
-    inputAutomata.fromJSON(savedData);
-    loadProperties(savedData);
+  const savedAutomata = localStorage.getItem("automata");
+  if (savedAutomata) {
+    const savedValidate = localStorage.getItem("validate");
+    inputAutomata.fromJSON(savedAutomata);
+    loadProperties(savedAutomata);
+    plot(false);
+
+    validateInput.value = savedValidate;
+    validate();
   } else {
-    inputAutomata.fromJSON(automataExampleJSON);
-    loadProperties(automataExampleJSON);
-    validateInput.value = "a a b b"
+    loadSample();
   }
-  plot(false);
 }
 
 load();

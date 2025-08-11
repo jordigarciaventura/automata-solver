@@ -1,0 +1,7 @@
+{
+    "root": "./",
+    "publicDir": "./",
+    "build": {
+        "outDir": "dist"
+    }
+}
