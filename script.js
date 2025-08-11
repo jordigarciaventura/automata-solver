@@ -55,8 +55,8 @@ const minimizedGraph = document.getElementById("minimized-graph");
 
 // GLOBAL VARIABLES
 
-let inputGraphviz;
-let minimizedGraphviz;
+let inputGraphviz = null;
+let minimizedGraphviz = null;
 
 let selectedOption = "input";
 let maximizedGraph = "";
@@ -336,10 +336,8 @@ function getInput(text) {
   return new Set(words.filter((w) => w !== ""));
 }
 
-const transition = d3.transition().duration(2000).ease(d3.easeLinear);
-
 function attributer(datum) {
-  let selection = d3.select(this);
+  const selection = d3.select(this);
   if (datum.tag === "svg") {
     datum.attributes = {
       ...datum.attributes,
@@ -351,23 +349,25 @@ function attributer(datum) {
     const graphWidth = datum.attributes.viewBox.split(" ")[2] / px2pt;
     const graphHeight = datum.attributes.viewBox.split(" ")[3] / px2pt;
 
-    const w = graphWidth / 0.6;
-    const h = graphHeight / 0.6;
+    const width = graphWidth / 0.6;
+    const height = graphHeight / 0.6;
 
-    const x = -(w - graphWidth) / 2;
-    const y = -(h - graphHeight) / 2;
+    const x = -(width - graphWidth) / 2;
+    const y = -(height - graphHeight) / 2;
 
-    const viewBox = `${x * px2pt} ${y * px2pt} ${w * px2pt} ${h * px2pt}`;
+    const viewBox = `${x * px2pt} ${y * px2pt} ${width * px2pt} ${height * px2pt}`;
     selection.attr("viewBox", viewBox);
     datum.attributes.viewBox = viewBox;
   }
 }
 
+const d3Transition = d3.transition().duration(2000).ease(d3.easeLinear);
+
 function plotInput(animated = true) {
   if (!inputGraphviz) {
-    inputGraphviz = d3.select("#input-graph").graphviz().attributer(attributer);
+    inputGraphviz = d3.select("#input-graph").graphviz({ useWorker: false }).attributer(attributer);
     if (animated) {
-      inputGraphviz.transition(transition);
+      inputGraphviz.transition(d3Transition);
     }
   }
   inputGraphviz.renderDot(inputAutomata.toDOT());
@@ -377,10 +377,10 @@ function plotMinimized(animated = true) {
   if (!minimizedGraphviz) {
     minimizedGraphviz = d3
       .select("#minimized-graph")
-      .graphviz()
+      .graphviz({ useWorker: false })
       .attributer(attributer);
     if (animated) {
-      minimizedGraphviz.transition(transition);
+      minimizedGraphviz.transition(d3Transition);
     }
   }
   minimizedGraphviz.renderDot(inputAutomata.minimized().toDOT());
@@ -398,9 +398,9 @@ function checkInitialStates() {
   if (!assertSetContains(inputAutomata.states, initialStates)) {
     initialStatesInput.classList.add("textbox-error");
     inputAutomata.setInitialStates();
-  } else {
-    initialStatesInput.classList.remove("textbox-error");
+    return;
   }
+  initialStatesInput.classList.remove("textbox-error");
 }
 
 function checkFinalStates() {
@@ -409,9 +409,9 @@ function checkFinalStates() {
   if (!assertSetContains(inputAutomata.states, finalStates)) {
     finalStatesInput.classList.add("textbox-error");
     inputAutomata.setFinalStates();
-  } else {
-    finalStatesInput.classList.remove("textbox-error");
+    return;
   }
+  finalStatesInput.classList.remove("textbox-error");
 }
 
 function checkFromState() {
@@ -423,11 +423,9 @@ function checkFromState() {
 
   if (!validFromState) {
     fromStateInput.classList.add("textbox-error");
-    return false;
+    return;
   }
-
   fromStateInput.classList.remove("textbox-error");
-  return true;
 }
 
 function checkSymbol() {
@@ -436,11 +434,9 @@ function checkSymbol() {
 
   if (!validSymbol) {
     symbolInput.classList.add("textbox-error");
-    return false;
+    return;
   }
-
   symbolInput.classList.remove("textbox-error");
-  return true;
 }
 
 function checkToStates() {
@@ -453,11 +449,9 @@ function checkToStates() {
 
   if (!validToStates) {
     toStatesInput.classList.add("textbox-error");
-    return false;
+    return;
   }
-
   toStatesInput.classList.remove("textbox-error");
-  return true;
 }
 
 function checkTransition() {
@@ -486,8 +480,6 @@ function checkTransition() {
 
 function onClose(e) {
   const transitionDiv = e.target.closest(".transition");
-  const [fromStateInput, symbolInput, toStatesInput] =
-    transitionDiv.getElementsByTagName("input");
   inputAutomata.removeTransition(
     fromStateInput.value,
     symbolInput.value,
@@ -509,9 +501,6 @@ function removeInvalidTransitions() {
   const transitions = document.querySelectorAll(".transition");
 
   for (const transition of transitions) {
-    const [fromStateInput, symbolInput, toStatesInput] =
-      transition.getElementsByTagName("input");
-
     if (!inputAutomata.states.has(fromStateInput.value)) {
       inputAutomata.removeTransition(
         fromStateInput.value,
@@ -608,7 +597,7 @@ function changeIcon(button, id) {
 function getIconElement(id) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-  use.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#" + id);
+  use.setAttributeNS("http://www.w3.org/1999/xlink", "href", `#${id}`);
   svg.appendChild(use);
   return svg;
 }
@@ -675,10 +664,10 @@ function downloadPNG(svg, filename) {
   canvas.height = parseInt(height);
 
   const ctx = canvas.getContext("2d");
-  const v = Canvg.fromString(ctx, svg.outerHTML);
-  v.render().then(() => {
+  const canvg = Canvg.fromString(ctx, svg.outerHTML);
+  canvg.render().then(() => {
     const link = document.createElement("a");
-    link.download = filename + ".png";
+    link.download = `${filename}.png`;
     link.href = canvas.toDataURL("image/png");
     document.body.appendChild(link);
     link.click();
@@ -691,14 +680,14 @@ function downloadSVG(svg, filename) {
   let svgString = serializer.serializeToString(svg);
 
   if (!svgString.startsWith("<?xml")) {
-    svgString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + svgString;
+    svgString = `<?xml version="1.0" encoding="UTF-8"?>\n${svgString}`;
   }
 
   const blob = new Blob([svgString], { type: "image/svg+xml" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = filename + ".svg";
+  link.download = `${filename}.svg`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -706,18 +695,18 @@ function downloadSVG(svg, filename) {
 }
 
 function download(data, filename, type) {
-  const file = new Blob([data], { type: type });
+  const file = new Blob([data], { type });
   if (window.navigator.msSaveOrOpenBlob)
     window.navigator.msSaveOrOpenBlob(file, filename);
   else {
-    const a = document.createElement("a");
+    const link = document.createElement("a");
     const url = URL.createObjectURL(file);
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () {
-      document.body.removeChild(a);
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     }, 0);
   }
