@@ -260,10 +260,10 @@ export default class FiniteAutomata {
 
   isDeterministic() {
     if (this.initialStates.size > 1) return false;
-    if (this.transitions.size != this.states.size) return false;
+    if (this.transitions.size !== this.states.size) return false;
 
     for (const [, symbolTransitions] of this.transitions) {
-      if (symbolTransitions.size != this.alphabet.size) return false;
+      if (symbolTransitions.size !== this.alphabet.size) return false;
       for (const [, endStates] of symbolTransitions) {
         if (endStates.size > 1) return false;
       }
@@ -317,8 +317,8 @@ export default class FiniteAutomata {
       equivalenceClasses.push(equivalenceClass);
       stateClasses.push(getStateClasses(equivalenceClass));
     } while (
-      equivalenceClasses.at(-1).size != equivalenceClasses.at(-2).size ||
-      equivalenceClasses.at(-1).size == automata.states
+      equivalenceClasses.at(-1).size !== equivalenceClasses.at(-2).size ||
+      equivalenceClasses.at(-1).size === automata.states
     );
 
     for (const states of equivalenceClasses.at(-1).values()) {

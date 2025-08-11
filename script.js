@@ -338,9 +338,9 @@ function getInput(text) {
 
 const transition = d3.transition().duration(2000).ease(d3.easeLinear);
 
-function attributer(datum, index, nodes) {
-  var selection = d3.select(this);
-  if (datum.tag == "svg") {
+function attributer(datum) {
+  let selection = d3.select(this);
+  if (datum.tag === "svg") {
     datum.attributes = {
       ...datum.attributes,
       width: "100%",
@@ -534,7 +534,7 @@ function removeInvalidTransitions() {
       continue;
     }
 
-    if (!inputAutomata.alphabet.has(symbolInput.value) && symbolInput != "") {
+    if (!inputAutomata.alphabet.has(symbolInput.value) && symbolInput !== "") {
       inputAutomata.removeTransition(
         fromStateInput.value,
         symbolInput.value,
@@ -631,6 +631,7 @@ function loadProperties(json) {
       }
     }
   } catch (e) {
+    console.error(e);
     statesInput.value = "";
     alphabetInput.value = "";
     initialStatesInput.value = "";
@@ -667,18 +668,18 @@ function unlockProperties() {
 }
 
 function downloadPNG(svg, filename) {
-  const canvas = document.createElement('canvas');
-  const width = svg.width.baseVal.value || svg.getAttribute('width') || 800;
-  const height = svg.height.baseVal.value || svg.getAttribute('height') || 600;
+  const canvas = document.createElement("canvas");
+  const width = svg.width.baseVal.value || svg.getAttribute("width") || 800;
+  const height = svg.height.baseVal.value || svg.getAttribute("height") || 600;
   canvas.width = parseInt(width);
   canvas.height = parseInt(height);
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   const v = Canvg.fromString(ctx, svg.outerHTML);
   v.render().then(() => {
-    const link = document.createElement('a');
-    link.download = filename + '.png';
-    link.href = canvas.toDataURL('image/png');
+    const link = document.createElement("a");
+    link.download = filename + ".png";
+    link.href = canvas.toDataURL("image/png");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -689,15 +690,15 @@ function downloadSVG(svg, filename) {
   const serializer = new XMLSerializer();
   let svgString = serializer.serializeToString(svg);
 
-  if (!svgString.startsWith('<?xml')) {
-    svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+  if (!svgString.startsWith("<?xml")) {
+    svgString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + svgString;
   }
 
-  const blob = new Blob([svgString], { type: 'image/svg+xml' });
+  const blob = new Blob([svgString], { type: "image/svg+xml" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
-  link.download = filename + '.svg';
+  link.download = filename + ".svg";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
