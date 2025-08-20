@@ -1,7 +1,7 @@
 {
     "root": "./",
     "publicDir": "./",
-    "base": "automata-solver",
+    "base": "/automata-solver/",
     "build": {
         "outDir": "dist"
     }
