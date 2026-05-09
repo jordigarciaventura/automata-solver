@@ -1,34 +1,33 @@
 // Utility functions
 
 function statesName(states) {
-  return [...states].sort().join(",");
+  return [...states].sort().join(',')
 }
 
 function transitionsFromObject(obj) {
-  const transitions = new Map();
-  if (!obj) return transitions;
+  const transitions = new Map()
+  if (!obj) return transitions
   for (const [state, symbols] of Object.entries(obj)) {
-    const stateTransitions = new Map();
+    const stateTransitions = new Map()
     for (const [symbol, finalStates] of Object.entries(symbols)) {
-      stateTransitions.set(symbol, new Set(finalStates));
+      stateTransitions.set(symbol, new Set(finalStates))
     }
-    transitions.set(state, stateTransitions);
+    transitions.set(state, stateTransitions)
   }
-  return transitions;
+  return transitions
 }
 
 function transitionsToObject(transitions) {
-  const transitionsObj = {};
+  const transitionsObj = {}
   for (const [state, symbols] of transitions) {
-    const stateTransitions = {};
+    const stateTransitions = {}
     for (const [symbol, finalStates] of symbols) {
-      stateTransitions[symbol] = [...finalStates];
+      stateTransitions[symbol] = [...finalStates]
     }
-    transitionsObj[state] = stateTransitions;
+    transitionsObj[state] = stateTransitions
   }
-  return transitionsObj;
+  return transitionsObj
 }
-
 
 export default class FiniteAutomata {
   /**
@@ -40,338 +39,328 @@ export default class FiniteAutomata {
    * @param {Array.<String>} finalStates - Final states from states
    */
   constructor(states, alphabet, transitions, initialStates, finalStates) {
-    this.states = new Set(states);
-    this.alphabet = new Set(alphabet);
-    this.transitions = transitionsFromObject(transitions);
-    this.initialStates = new Set(initialStates);
-    this.finalStates = new Set(finalStates);
+    this.states = new Set(states)
+    this.alphabet = new Set(alphabet)
+    this.transitions = transitionsFromObject(transitions)
+    this.initialStates = new Set(initialStates)
+    this.finalStates = new Set(finalStates)
   }
 
   setStates(states = []) {
-    this.states = new Set(states);
+    this.states = new Set(states)
   }
 
   setAlphabet(alphabet = []) {
-    this.alphabet = new Set(alphabet);
+    this.alphabet = new Set(alphabet)
   }
 
   setInitialStates(initialStates = []) {
-    this.initialStates = new Set(initialStates);
+    this.initialStates = new Set(initialStates)
   }
 
   setFinalStates(finalStates = []) {
-    this.finalStates = new Set(finalStates);
+    this.finalStates = new Set(finalStates)
   }
 
   setTransitions(transitions = []) {
-    this.transitions = new Map();
+    this.transitions = new Map()
     for (const [state, stateTransitions] of transitions) {
-      const symbolTransitions = new Map();
+      const symbolTransitions = new Map()
       for (const [symbol, endStates] of stateTransitions) {
-        symbolTransitions.set(symbol, new Set(endStates));
+        symbolTransitions.set(symbol, new Set(endStates))
       }
-      this.transitions.set(state, symbolTransitions);
+      this.transitions.set(state, symbolTransitions)
     }
   }
 
   hasTransition(newInitialState, newSymbol, newFinalStates) {
-    if (!this.transitions.has(newInitialState)) return false;
-    const symbolTransitions = this.transitions.get(newInitialState);
-    if (!symbolTransitions.has(newSymbol)) return false;
-    const finalStates = symbolTransitions.get(newSymbol);
+    if (!this.transitions.has(newInitialState)) return false
+    const symbolTransitions = this.transitions.get(newInitialState)
+    if (!symbolTransitions.has(newSymbol)) return false
+    const finalStates = symbolTransitions.get(newSymbol)
     for (const finalState of newFinalStates) {
-      if (!finalStates.has(finalState)) return false;
+      if (!finalStates.has(finalState)) return false
     }
-    return true;
+    return true
   }
 
   addTransition(initialState, symbol, finalStates) {
-    if (this.hasTransition(initialState, symbol, finalStates)) return;
+    if (this.hasTransition(initialState, symbol, finalStates)) return
 
-    finalStates = new Set(finalStates);
+    finalStates = new Set(finalStates)
     if (!this.transitions.has(initialState)) {
-      const symbolTransitions = new Map();
-      symbolTransitions.set(symbol, finalStates);
-      this.transitions.set(initialState, symbolTransitions);
-      return;
+      const symbolTransitions = new Map()
+      symbolTransitions.set(symbol, finalStates)
+      this.transitions.set(initialState, symbolTransitions)
+      return
     }
 
-    const symbolTransitions = this.transitions.get(initialState);
+    const symbolTransitions = this.transitions.get(initialState)
 
     if (!symbolTransitions.has(symbol)) {
-      symbolTransitions.set(symbol, finalStates);
-      return;
+      symbolTransitions.set(symbol, finalStates)
+      return
     }
 
-    const endStates = symbolTransitions.get(symbol);
+    const endStates = symbolTransitions.get(symbol)
 
     for (const finalState of finalStates) {
-      endStates.add(finalState);
+      endStates.add(finalState)
     }
   }
 
   removeTransition(initialState, symbol, endStates) {
-    if (!this.hasTransition(initialState, symbol, endStates)) return;
+    if (!this.hasTransition(initialState, symbol, endStates)) return
 
-    const currentEndStates = this.transitions.get(initialState).get(symbol);
+    const currentEndStates = this.transitions.get(initialState).get(symbol)
 
     for (const endState of endStates) {
-      currentEndStates.delete(endState);
+      currentEndStates.delete(endState)
     }
 
     // Clean empty transitions
 
     if (this.transitions.get(initialState).get(symbol).size === 0)
-      this.transitions.get(initialState).delete(symbol);
+      this.transitions.get(initialState).delete(symbol)
 
-    if (this.transitions.get(initialState).size === 0)
-      this.transitions.delete(initialState);
+    if (this.transitions.get(initialState).size === 0) this.transitions.delete(initialState)
   }
 
   validate(symbols) {
-    const configurationsStack = new StackSet();
+    const configurationsStack = new StackSet()
 
     // Fill stack with initial configurations
     for (const initialState of this.initialStates) {
-      const labmdaStates = this.lambdaStates(initialState);
+      const labmdaStates = this.lambdaStates(initialState)
       for (const lambdaState of labmdaStates) {
-        configurationsStack.push(new Configuration(lambdaState, [...symbols]));
+        configurationsStack.push(new Configuration(lambdaState, [...symbols]))
       }
     }
 
     while (configurationsStack.length > 0) {
-      const configuration = configurationsStack.pop();
+      const configuration = configurationsStack.pop()
 
       // No symbols left -> check if configuration state is a final state or if we can reach some final state with lambda transitions
 
       if (!configuration.hasSymbols()) {
-        const lambdaStates = this.lambdaStates(configuration.state); // reachable states with lambda transitions (including itself)
+        const lambdaStates = this.lambdaStates(configuration.state) // reachable states with lambda transitions (including itself)
         for (const lambdaState of lambdaStates) {
-          if (this.finalStates.has(lambdaState)) return true; // if some reachable state is a final state, return true
+          if (this.finalStates.has(lambdaState)) return true // if some reachable state is a final state, return true
         }
-        continue;
+        continue
       }
 
       // Symbols left -> add configurations with reachable states by the next symbol in symbols, so we pop that symbol
 
-      if (!this.transitions.has(configuration.state)) continue; // no reachable states
+      if (!this.transitions.has(configuration.state)) continue // no reachable states
 
-      const symbol = configuration.popSymbol();
+      const symbol = configuration.popSymbol()
 
       // Check reachable states with symbol transitions
-      const symbolTransitions = this.transitions.get(configuration.state);
+      const symbolTransitions = this.transitions.get(configuration.state)
       if (symbolTransitions.has(symbol)) {
         for (const endState of symbolTransitions.get(symbol)) {
-          const lambdaStates = this.lambdaStates(endState); // reachable states with symbol
+          const lambdaStates = this.lambdaStates(endState) // reachable states with symbol
           for (const lambdaState of lambdaStates) {
-            configurationsStack.push(
-              new Configuration(lambdaState, [...configuration.symbols])
-            ); // add to stack (there is one minus symbol so we are reducing the problem)
+            configurationsStack.push(new Configuration(lambdaState, [...configuration.symbols])) // add to stack (there is one minus symbol so we are reducing the problem)
           }
         }
       }
     }
 
-    return false;
+    return false
   }
 
   deterministic() {
-    if (this.isDeterministic()) return this;
+    if (this.isDeterministic()) return this
 
-    const deterministicAutomata = new FiniteAutomata();
+    const deterministicAutomata = new FiniteAutomata()
 
-    deterministicAutomata.setAlphabet(this.alphabet);
+    deterministicAutomata.setAlphabet(this.alphabet)
 
-    const initialStates = this.lambdaStates(this.initialStates);
-    deterministicAutomata.setInitialStates([statesName(initialStates)]);
+    const initialStates = this.lambdaStates(this.initialStates)
+    deterministicAutomata.setInitialStates([statesName(initialStates)])
 
-    let hasNull = false;
-    const stack = [initialStates];
+    let hasNull = false
+    const stack = [initialStates]
 
     while (stack.length > 0) {
-      const states = stack.pop();
+      const states = stack.pop()
 
-      const stateName = statesName(states);
-      deterministicAutomata.states.add(stateName);
+      const stateName = statesName(states)
+      deterministicAutomata.states.add(stateName)
 
       if (this.hasFinalState(states)) {
-        deterministicAutomata.finalStates.add(stateName);
+        deterministicAutomata.finalStates.add(stateName)
       }
 
       for (const symbol of this.alphabet) {
-        const endStates = this.endStates(states, symbol);
-        const lambdaStates = this.lambdaStates(endStates);
+        const endStates = this.endStates(states, symbol)
+        const lambdaStates = this.lambdaStates(endStates)
 
         if (lambdaStates.size === 0) {
           if (!hasNull) {
-            deterministicAutomata.addNullState();
-            hasNull = true;
+            deterministicAutomata.addNullState()
+            hasNull = true
           }
-          deterministicAutomata.addTransition(stateName, symbol, ["ø"]);
-          continue;
+          deterministicAutomata.addTransition(stateName, symbol, ['ø'])
+          continue
         }
-        const lambdaStatesName = statesName(lambdaStates);
-        deterministicAutomata.addTransition(stateName, symbol, [
-          lambdaStatesName,
-        ]);
-        if (!deterministicAutomata.states.has(lambdaStatesName))
-          stack.push(lambdaStates);
+        const lambdaStatesName = statesName(lambdaStates)
+        deterministicAutomata.addTransition(stateName, symbol, [lambdaStatesName])
+        if (!deterministicAutomata.states.has(lambdaStatesName)) stack.push(lambdaStates)
       }
     }
 
-    return deterministicAutomata;
+    return deterministicAutomata
   }
 
   hasFinalState(states) {
     for (const state of states) {
-      if (this.finalStates.has(state)) return true;
+      if (this.finalStates.has(state)) return true
     }
-    return false;
+    return false
   }
 
   hasInitialState(states) {
     for (const state of states) {
-      if (this.initialStates.has(state)) return true;
+      if (this.initialStates.has(state)) return true
     }
-    return false;
+    return false
   }
 
   endStates(states, symbol) {
-    if (typeof states === "string") states = [states];
+    if (typeof states === 'string') states = [states]
 
-    const endStates = [];
+    const endStates = []
 
     for (const state of states) {
       if (this.transitions.has(state)) {
-        const stateTransitions = this.transitions.get(state);
+        const stateTransitions = this.transitions.get(state)
         if (stateTransitions.has(symbol)) {
-          endStates.push(...stateTransitions.get(symbol));
+          endStates.push(...stateTransitions.get(symbol))
         }
       }
     }
 
-    return new Set(endStates);
+    return new Set(endStates)
   }
 
   lambdaStates(states, includeSources = true) {
-    if (typeof states === "string") states = [states];
-    states = new Set(states);
+    if (typeof states === 'string') states = [states]
+    states = new Set(states)
 
-    const lambdaStates = new Set();
-    const stack = includeSources ? [...states] : [];
+    const lambdaStates = new Set()
+    const stack = includeSources ? [...states] : []
 
     while (stack.length > 0) {
-      const state = stack.pop();
+      const state = stack.pop()
 
-      if (lambdaStates.has(state)) continue; // avoid infinite loop
-      if (!includeSources && states.has(state)) continue;
-      lambdaStates.add(state);
+      if (lambdaStates.has(state)) continue // avoid infinite loop
+      if (!includeSources && states.has(state)) continue
+      lambdaStates.add(state)
 
       if (this.transitions.has(state)) {
-        const stateTransitions = this.transitions.get(state);
-        if (stateTransitions.has("")) {
-          const endStates = stateTransitions.get("");
-          stack.push(...endStates);
+        const stateTransitions = this.transitions.get(state)
+        if (stateTransitions.has('')) {
+          const endStates = stateTransitions.get('')
+          stack.push(...endStates)
         }
       }
     }
 
-    return lambdaStates;
+    return lambdaStates
   }
 
   addNullState() {
-    this.states.add("ø");
+    this.states.add('ø')
     for (const symbol of this.alphabet) {
-      this.addTransition("ø", symbol, ["ø"]);
+      this.addTransition('ø', symbol, ['ø'])
     }
   }
 
   isDeterministic() {
-    if (this.initialStates.size > 1) return false;
-    if (this.transitions.size !== this.states.size) return false;
+    if (this.initialStates.size > 1) return false
+    if (this.transitions.size !== this.states.size) return false
 
     for (const [, symbolTransitions] of this.transitions) {
-      if (symbolTransitions.size !== this.alphabet.size) return false;
+      if (symbolTransitions.size !== this.alphabet.size) return false
       for (const [, endStates] of symbolTransitions) {
-        if (endStates.size > 1) return false;
+        if (endStates.size > 1) return false
       }
     }
 
-    return true;
+    return true
   }
 
   minimized() {
     function getStateClasses(equivalenceClasses) {
-      const stateClasses = new Map();
+      const stateClasses = new Map()
       for (const [key, states] of equivalenceClasses) {
         for (const state of states) {
-          stateClasses.set(state, key);
+          stateClasses.set(state, key)
         }
       }
-      return stateClasses;
+      return stateClasses
     }
 
-    const automata = this.isDeterministic() ? this : this.deterministic();
+    const automata = this.isDeterministic() ? this : this.deterministic()
 
-    const minimizedAutomata = new FiniteAutomata();
-    minimizedAutomata.setAlphabet(automata.alphabet);
+    const minimizedAutomata = new FiniteAutomata()
+    minimizedAutomata.setAlphabet(automata.alphabet)
 
-    const equivalenceClasses = [];
-    const stateClasses = [];
+    const equivalenceClasses = []
+    const stateClasses = []
 
-    const initialEquivalenceClass = new Map();
-    initialEquivalenceClass.set("0", automata.finalStates);
+    const initialEquivalenceClass = new Map()
+    initialEquivalenceClass.set('0', automata.finalStates)
     initialEquivalenceClass.set(
-      "1",
-      new Set(
-        [...automata.states].filter((state) => !automata.finalStates.has(state))
-      )
-    );
-    equivalenceClasses.push(initialEquivalenceClass);
-    stateClasses.push(getStateClasses(initialEquivalenceClass));
+      '1',
+      new Set([...automata.states].filter((state) => !automata.finalStates.has(state))),
+    )
+    equivalenceClasses.push(initialEquivalenceClass)
+    stateClasses.push(getStateClasses(initialEquivalenceClass))
 
     do {
-      const equivalenceClass = new Map();
+      const equivalenceClass = new Map()
       for (const state of automata.states) {
-        let key = stateClasses.at(-1).get(state);
+        let key = stateClasses.at(-1).get(state)
         for (const symbol of automata.alphabet) {
-          const [endState] = automata.transitions.get(state).get(symbol);
-          key += stateClasses.at(-1).get(endState);
+          const [endState] = automata.transitions.get(state).get(symbol)
+          key += stateClasses.at(-1).get(endState)
         }
-        const states = equivalenceClass.get(key) || new Set();
-        states.add(state);
-        equivalenceClass.set(key, states);
+        const states = equivalenceClass.get(key) || new Set()
+        states.add(state)
+        equivalenceClass.set(key, states)
       }
-      equivalenceClasses.push(equivalenceClass);
-      stateClasses.push(getStateClasses(equivalenceClass));
+      equivalenceClasses.push(equivalenceClass)
+      stateClasses.push(getStateClasses(equivalenceClass))
     } while (
       equivalenceClasses.at(-1).size !== equivalenceClasses.at(-2).size ||
       equivalenceClasses.at(-1).size === automata.states
-    );
+    )
 
     for (const states of equivalenceClasses.at(-1).values()) {
-      const stateName = statesName(states);
+      const stateName = statesName(states)
 
-      minimizedAutomata.states.add(stateName);
-      if (automata.hasFinalState(states))
-        minimizedAutomata.finalStates.add(stateName);
+      minimizedAutomata.states.add(stateName)
+      if (automata.hasFinalState(states)) minimizedAutomata.finalStates.add(stateName)
 
       if (automata.hasInitialState(states)) {
-        minimizedAutomata.setInitialStates([stateName]);
+        minimizedAutomata.setInitialStates([stateName])
       }
 
-      const [firstState] = states;
+      const [firstState] = states
       for (const symbol of minimizedAutomata.alphabet) {
-        const [endState] = automata.transitions.get(firstState).get(symbol);
-        const classNum = stateClasses.at(-1).get(endState);
-        const equivalenceClass = equivalenceClasses.at(-1).get(classNum);
-        const endStateName = statesName(equivalenceClass);
-        minimizedAutomata.addTransition(stateName, symbol, [endStateName]);
+        const [endState] = automata.transitions.get(firstState).get(symbol)
+        const classNum = stateClasses.at(-1).get(endState)
+        const equivalenceClass = equivalenceClasses.at(-1).get(classNum)
+        const endStateName = statesName(equivalenceClass)
+        minimizedAutomata.addTransition(stateName, symbol, [endStateName])
       }
     }
-    return minimizedAutomata;
+    return minimizedAutomata
   }
-
 
   toJSON() {
     const automataObj = {
@@ -380,42 +369,40 @@ export default class FiniteAutomata {
       initialStates: [...this.initialStates],
       finalStates: [...this.finalStates],
       transitions: transitionsToObject(this.transitions),
-    };
-    return JSON.stringify(automataObj, null, 2);
+    }
+    return JSON.stringify(automataObj, null, 2)
   }
 
   toDOT() {
-    const transitionsMap = new Map();
+    const transitionsMap = new Map()
 
     for (const [state, symbolTransitions] of this.transitions) {
       for (let [symbol, endStates] of symbolTransitions) {
         for (const endState of endStates) {
-          if (symbol === "") symbol = "λ";
-          const key = `"${state}" -> "${endState}"`;
-          const symbols = transitionsMap.get(key);
+          if (symbol === '') symbol = 'λ'
+          const key = `"${state}" -> "${endState}"`
+          const symbols = transitionsMap.get(key)
           if (symbols === undefined) {
-            transitionsMap.set(key, [symbol]);
+            transitionsMap.set(key, [symbol])
           } else {
-            symbols.push(symbol);
+            symbols.push(symbol)
           }
         }
       }
     }
 
     const initialAndFinalStates = new Set(
-      [...this.initialStates].filter((elem) => this.finalStates.has(elem))
-    );
+      [...this.initialStates].filter((elem) => this.finalStates.has(elem)),
+    )
     const onlyFinalStates = new Set(
-      [...this.finalStates].filter((elem) => !initialAndFinalStates.has(elem))
-    );
+      [...this.finalStates].filter((elem) => !initialAndFinalStates.has(elem)),
+    )
     const onlyInitialStates = new Set(
-      [...this.initialStates].filter((elem) => !initialAndFinalStates.has(elem))
-    );
+      [...this.initialStates].filter((elem) => !initialAndFinalStates.has(elem)),
+    )
     const normalStates = new Set(
-      [...this.states].filter(
-        (elem) => !onlyInitialStates.has(elem) && !onlyFinalStates.has(elem)
-      )
-    );
+      [...this.states].filter((elem) => !onlyInitialStates.has(elem) && !onlyFinalStates.has(elem)),
+    )
 
     return `
 digraph finite_state_machine {
@@ -424,73 +411,73 @@ digraph finite_state_machine {
   edge [fontname="Helvetica,Arial,sans-serif"]
   rankdir=LR;
   node [shape = doublecircle style = solid]; ${[...onlyFinalStates]
-        .map((x) => `"${x}"`)
-        .join(" ")} ${onlyFinalStates.size > 0 ? ";" : ""}
+    .map((x) => `"${x}"`)
+    .join(' ')} ${onlyFinalStates.size > 0 ? ';' : ''}
   node [shape = doublecircle style = dashed]; ${[...initialAndFinalStates]
-        .map((x) => `"${x}"`)
-        .join(" ")} ${initialAndFinalStates.size > 0 ? ";" : ""}
+    .map((x) => `"${x}"`)
+    .join(' ')} ${initialAndFinalStates.size > 0 ? ';' : ''}
   node [shape = circle style = dashed]; ${[...onlyInitialStates]
-        .map((x) => `"${x}"`)
-        .join(" ")} ${onlyInitialStates.size > 0 ? ";" : ""}
+    .map((x) => `"${x}"`)
+    .join(' ')} ${onlyInitialStates.size > 0 ? ';' : ''}
   node [shape = circle style = solid]; ${[...normalStates]
-        .map((x) => `"${x}"`)
-        .join(" ")} ${normalStates.size > 0 ? ";" : ""}
+    .map((x) => `"${x}"`)
+    .join(' ')} ${normalStates.size > 0 ? ';' : ''}
   ${[...transitionsMap.keys()]
-        .map((key) => `${key} [label="${transitionsMap.get(key).join(",")}"]`)
-        .join("\n")}
-}`;
+    .map((key) => `${key} [label="${transitionsMap.get(key).join(',')}"]`)
+    .join('\n')}
+}`
   }
 
   fromJSON(json) {
-    const automataObj = JSON.parse(json);
-    this.states = new Set(automataObj.states);
-    this.alphabet = new Set(automataObj.alphabet);
-    this.initialStates = new Set(automataObj.initialStates);
-    this.finalStates = new Set(automataObj.finalStates);
-    this.transitions = transitionsFromObject(automataObj.transitions);
+    const automataObj = JSON.parse(json)
+    this.states = new Set(automataObj.states)
+    this.alphabet = new Set(automataObj.alphabet)
+    this.initialStates = new Set(automataObj.initialStates)
+    this.finalStates = new Set(automataObj.finalStates)
+    this.transitions = transitionsFromObject(automataObj.transitions)
   }
 }
 
 class Configuration {
   constructor(state, symbols) {
-    this.state = state;
-    this.symbols = symbols;
+    this.state = state
+    this.symbols = symbols
   }
 
   hasSymbols() {
-    return this.symbols.length > 0;
+    return this.symbols.length > 0
   }
 
   popSymbol() {
-    return this.symbols.shift();
+    return this.symbols.shift()
   }
 
   toString() {
-    return `${this.state}${this.symbols.join("")}`;
+    return `${this.state}${this.symbols.join('')}`
   }
 }
 
 class StackSet {
   constructor() {
-    this.arr = [];
-    this.length = 0;
-    this.hashSet = new Set();
+    this.arr = []
+    this.length = 0
+    this.hashSet = new Set()
   }
 
   push(obj) {
-    const hash = obj.toString();
-    if (this.hashSet.has(hash)) return;
+    const hash = obj.toString()
+    if (this.hashSet.has(hash)) return
 
-    this.length++;
-    this.hashSet.add(hash);
-    this.arr.push(obj);
+    this.length++
+    this.hashSet.add(hash)
+    this.arr.push(obj)
   }
 
   pop() {
-    this.length--;
-    const obj = this.arr.pop();
-    const hash = obj.toString();
-    this.hashSet.delete(hash);
-    return obj;
+    this.length--
+    const obj = this.arr.pop()
+    const hash = obj.toString()
+    this.hashSet.delete(hash)
+    return obj
   }
 }

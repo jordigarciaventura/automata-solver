@@ -2,17 +2,18 @@
   "name": "automata-solver",
   "version": "1.0.0",
   "description": "Obtain from any finite automaton the equivalent minimum deterministic finite automaton.",
-  "main": "automata.js",
+  "license": "MIT",
+  "author": "",
   "type": "module",
+  "main": "automata.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vp dev",
+    "build": "vp build",
     "preview": "npm run build && wrangler dev",
     "lint": "eslint .",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "prepare": "vp config"
   },
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "@hpcc-js/wasm": "^2.26.0",
     "canvg": "^4.0.3",
@@ -22,7 +23,9 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.33.2",
     "eslint": "^9.33.0",
-    "vite": "^7.1.1",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
     "wrangler": "^4.85.0"
-  }
+  },
+  "packageManager": "pnpm@11.0.9"
 }
