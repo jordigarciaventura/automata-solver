@@ -22,5 +22,6 @@
         "eslint": "^9.33.0",
         "vite": "^7.1.1",
         "wrangler": "^4.90.0"
-    }
+    },
+    "packageManager": "pnpm@10.24.0"
 }
