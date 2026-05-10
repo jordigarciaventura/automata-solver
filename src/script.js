@@ -1,7 +1,6 @@
 import FiniteAutomata from "./automata.js";
 import * as d3 from "d3";
 import "d3-graphviz";
-import { Canvg } from "canvg";
 
 let inputAutomata = new FiniteAutomata();
 
@@ -656,7 +655,7 @@ function unlockProperties() {
   transitionInputDiv.style.display = "flex";
 }
 
-function downloadPNG(svg, filename) {
+async function downloadPNG(svg, filename) {
   const canvas = document.createElement("canvas");
   const width = svg.width.baseVal.value || svg.getAttribute("width") || 800;
   const height = svg.height.baseVal.value || svg.getAttribute("height") || 600;
@@ -664,6 +663,7 @@ function downloadPNG(svg, filename) {
   canvas.height = parseInt(height);
 
   const ctx = canvas.getContext("2d");
+  const { Canvg } = await import("canvg");
   const canvg = Canvg.fromString(ctx, svg.outerHTML);
   canvg.render().then(() => {
     const link = document.createElement("a");
