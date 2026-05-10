@@ -1,6 +1,6 @@
 export default {
-  base: '/automata-solver/',
+  "root": "src",
   build: {
-    outDir: 'dist'
+    outDir: '../dist'
   }
 }

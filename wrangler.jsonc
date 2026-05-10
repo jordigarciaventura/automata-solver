@@ -1,0 +1,8 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "automata-solver",
+    "compatibility_date": "2026-04-26",
+    "assets": {
+        "directory": "./dist"
+    }
+}
